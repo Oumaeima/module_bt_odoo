@@ -1,0 +1,11 @@
+<odoo>
+    <record id="action_gmao_bt" model="ir.actions.act_window">
+        <field name="name">Bon de Travail</field>
+        <field name="res_model">gmao.bt</field>
+        <field name="view_mode">kanban,list,form</field>
+    </record>
+
+    <menuitem id="menu_main_gmao_maintenance" name="GMAO" sequence="10"/>
+    <menuitem id="menu_bt_root" name="Bon de Travail (BT)" parent="menu_main_gmao_maintenance" action="action_gmao_bt" sequence="1"/>
+    
+</odoo>
