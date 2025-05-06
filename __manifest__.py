@@ -11,6 +11,7 @@
     'summary': 'Advenced Management of Maintenance Operations (GMAO)',
     'data': [
         'data/bt_stage_data.xml', 
+        'data/bt_cron.xml',
         'views/bt_views.xml',
         'views/gmao_menus.xml',
         'report/bt_report.xml',

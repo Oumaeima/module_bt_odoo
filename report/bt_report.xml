@@ -22,6 +22,7 @@
                                     <t t-esc="dict(bt._fields['priority'].selection).get(bt.priority)"/>
                                 </p>
                                 <p><strong>Référence :</strong> <t t-esc="bt.name"/></p>
+                                <p><strong>Date Planifiée :</strong> <t t-esc="bt.schedule_date"/></p>
                             </div>
                         </div>
 

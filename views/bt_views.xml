@@ -3,9 +3,8 @@
         <field name="name">gmao.bt.kanban</field>
         <field name="model">gmao.bt</field>
         <field name="arch" type="xml">
-            <kanban default_group_by="stage_id" highlight_color="color">
+            <kanban default_group_by="stage_id">
                 <field name="stage_id"/>
-                <field name="color"/>
                 <templates>
                     <t t-name="kanban-box">
                         <div class="oe_kanban_global_click">
@@ -72,9 +71,9 @@
 
                         <group>
                             <field name="used_parts_ids" widget="many2many_tags"/>
+                            <field name="schedule_date"/>
                             <field name="technician_signature" widget="signature"/>
                             <field name="supervisor_signature" widget="signature"/>
-                            <field name="color" widget="colorpicker" options="{'style': 'background'}"/>
                         </group>
                     </group>
 

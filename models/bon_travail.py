@@ -26,10 +26,10 @@ class GmaoBonTravail(models.Model):
         limit=1)
     technician_signature = fields.Binary(string="Signature Technicien")
     supervisor_signature = fields.Binary(string="Signature Superviseur")
-    color = fields.Integer(string='Color Index')
     priority = fields.Selection(
         bt_stages.AVAILABLE_PRIORITIES, string='Priority', index=True,
         default=bt_stages.AVAILABLE_PRIORITIES[0][0])
+    schedule_date = fields.Date(string="Date Planifiée")
 
     @api.model
     def _read_group_stage_ids(self, stages, domain, order=None):
@@ -61,4 +61,37 @@ class GmaoBonTravail(models.Model):
     def action_print_bt(self):
         self.ensure_one()
         return self.env.ref('gmao.action_report_gmao_bt').report_action(self)
+
+
+    @api.model
+    def check_late_bt(self):
+        today = fields.Date.context_today(self)
+
+        # 1. Notify technicians for late BTs
+        late_bts = self.search([
+            ('stage_id.name', 'not in', ['Clôturé', 'Réalisé']),
+            ('schedule_date', '!=', False),
+            ('schedule_date', '<', today),
+            ('technician_id', '!=', False)
+        ])
+        for bt in late_bts:
+            bt.technician_id.notify_warning(
+                message=f"Le Bon de Travail « {bt.name} » est en retard (prévu le {bt.schedule_date}).",
+                title="⚠️ BT en Retard"
+            )
+
+        # 2. Notify internal users for critical BTs without technician
+        critical_bts = self.search([
+            ('technician_id', '=', False),
+            ('priority', 'in', ['2', '3']),  # '2' = High, '3' = Very High
+            ('stage_id.name', 'not in', ['Clôturé', 'Réalisé']),
+        ])
+        for bt in critical_bts:
+            # Send notification to the supervisor if available, otherwise to admin
+            users_to_notify = [bt.supervisor_id] if bt.supervisor_id else self.env.ref('base.user_admin')
+            for user in users_to_notify:
+                user.notify_warning(
+                    message=f"⚠️ Le BT critique « {bt.name} » n’a pas encore de technicien assigné.",
+                    title="Alerte Priorité Élevée"
+                )
 
