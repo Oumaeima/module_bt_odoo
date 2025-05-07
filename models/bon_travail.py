@@ -67,31 +67,26 @@ class GmaoBonTravail(models.Model):
     def check_late_bt(self):
         today = fields.Date.context_today(self)
 
-        # 1. Notify technicians for late BTs
+        # 1. BT en retard → notifier le technicien
         late_bts = self.search([
             ('stage_id.name', 'not in', ['Clôturé', 'Réalisé']),
             ('schedule_date', '!=', False),
             ('schedule_date', '<', today),
             ('technician_id', '!=', False)
         ])
+
         for bt in late_bts:
-            bt.technician_id.notify_warning(
-                message=f"Le Bon de Travail « {bt.name} » est en retard (prévu le {bt.schedule_date}).",
-                title="⚠️ BT en Retard"
-            )
+            technician = bt.technician_id
+            msg = f"Le Bon de Travail « {bt.name} » est en retard (prévu le {bt.schedule_date})."
 
-        # 2. Notify internal users for critical BTs without technician
-        critical_bts = self.search([
-            ('technician_id', '=', False),
-            ('priority', 'in', ['2', '3']),  # '2' = High, '3' = Very High
-            ('stage_id.name', 'not in', ['Clôturé', 'Réalisé']),
-        ])
-        for bt in critical_bts:
-            # Send notification to the supervisor if available, otherwise to admin
-            users_to_notify = [bt.supervisor_id] if bt.supervisor_id else self.env.ref('base.user_admin')
-            for user in users_to_notify:
-                user.notify_warning(
-                    message=f"⚠️ Le BT critique « {bt.name} » n’a pas encore de technicien assigné.",
-                    title="Alerte Priorité Élevée"
+            # Notification interne
+            technician.notify_warning(message=msg, title="⚠️ BT en Retard")
+
+            # E-mail
+            if technician.email:
+                bt.message_post(
+                    body=msg,
+                    subject="Alerte : BT en Retard",
+                    partner_ids=[technician.partner_id.id],
+                    message_type='email'
                 )
-
