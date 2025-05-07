@@ -22,8 +22,7 @@ class GmaoBonTravail(models.Model):
     stage_id = fields.Many2one(
         'bt.stages',
         string='Étape',
-        group_expand='_read_group_stage_ids',
-        limit=1)
+        group_expand='_read_group_stage_ids')
     technician_signature = fields.Binary(string="Signature Technicien")
     supervisor_signature = fields.Binary(string="Signature Superviseur")
     priority = fields.Selection(
@@ -36,18 +35,18 @@ class GmaoBonTravail(models.Model):
         return stages.search([], order=order or 'sequence, id')
 
 
-    @api.model
-    def create(self, vals):
-        if vals.get('name', 'New') == 'New':
-            vals['name'] = self.env['ir.sequence'].next_by_code('gmao.bt') or 'New'
+    @api.model_create_multi
+    def create(self, vals_list):
+        for vals in vals_list:
+            if vals.get('name', 'New') == 'New':
+                vals['name'] = self.env['ir.sequence'].next_by_code('gmao.bt') or 'New'
 
-        # Affecte automatiquement l'étape "Affecté" si un technicien est assigné
-        if vals.get('technician_id') and not vals.get('stage_id'):
-            assigned_stage = self.env['bt.stages'].search([('name', '=', 'Affecté')], limit=1)
-            if assigned_stage:
-                vals['stage_id'] = assigned_stage.id
+            if vals.get('technician_id') and not vals.get('stage_id'):
+                assigned_stage = self.env['bt.stages'].search([('name', '=', 'Affecté')], limit=1)
+                if assigned_stage:
+                    vals['stage_id'] = assigned_stage.id
 
-        return super().create(vals)
+        return super().create(vals_list)
 
     def write(self, vals):
         for rec in self:
