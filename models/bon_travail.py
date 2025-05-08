@@ -79,7 +79,7 @@ class GmaoBonTravail(models.Model):
             msg = f"Le Bon de Travail « {bt.name} » est en retard (prévu le {bt.schedule_date})."
 
             # Notification interne
-            technician.notify_warning(message=msg, title="⚠️ BT en Retard")
+            bt.message_post(body=msg, subject="⚠️ BT en Retard", partner_ids=[technician.partner_id.id])
 
             # E-mail
             if technician.email:
